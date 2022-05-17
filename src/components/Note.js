@@ -1,16 +1,11 @@
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
-import EditIcon from '@mui/icons-material/Edit';
 const Note = ({ id, text, date, handleDeleteNote, handleEditNote }) => {
+    const noteDate = new Date((date && date.seconds * 1000))
 	return (
 		<div className='note'>
 			<span>{text}</span>
 			<div className='note-footer'>
-				<small>{date}</small>
-				<EditIcon
-					onClick={() => handleEditNote(id)}
-					className='Edit-icon'
-					size='1.3em'
-				/>
+				<small>{noteDate.toLocaleTimeString() + " " + noteDate.toDateString()}</small>
 				<DeleteForeverIcon
 					onClick={() => handleDeleteNote(id)}
 					className='delete-icon'

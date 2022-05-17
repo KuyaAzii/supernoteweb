@@ -1,73 +1,37 @@
 import { useState, useEffect } from 'react';
-import { nanoid } from 'nanoid';
+import {db} from './firebase';
 import NotesList from './components/NotesList';
 import Search from './components/Search';
 import Header from './components/Header';
+import { addDoc, collection, deleteDoc, serverTimestamp, doc, query, orderBy, onSnapshot } from 'firebase/firestore';
 
 const App = () => {
-	const [notes, setNotes] = useState([
-		{
-			id: nanoid(),
-			text: 'This is my first note!',
-			date: '15/04/2021',
-		},
-		{
-			id: nanoid(),
-			text: 'This is my second note!',
-			date: '21/04/2021',
-		},
-		{
-			id: nanoid(),
-			text: 'This is my third note!',
-			date: '28/04/2021',
-		},
-		{
-			id: nanoid(),
-			text: 'This is my new note!',
-			date: '30/04/2021',
-		},
-	]);
-
+	const [notes, setNotes] = useState([]);
 	const [searchText, setSearchText] = useState('');
 
 	const [darkMode, setDarkMode] = useState(false);
 
+	// GET ALL NOTE
 	useEffect(() => {
-		const savedNotes = JSON.parse(
-			localStorage.getItem('react-notes-app-data')
-		);
-
-		if (savedNotes) {
-			setNotes(savedNotes);
-		}
+		const q = query(collection(db, "notes"), orderBy("createdAt", "desc"));
+		onSnapshot(q, (snapshot) => {
+			setNotes(snapshot.docs.map((doc) => ({...doc.data(), id: doc.id})))
+		})
 	}, []);
 
-	useEffect(() => {
-		localStorage.setItem(
-			'react-notes-app-data',
-			JSON.stringify(notes)
-		);
-	}, [notes]);
-
+	// CREATE NOTE
 	const addNote = (text) => {
-		const date = new Date();
-		const newNote = {
-			id: nanoid(),
+		addDoc(collection(db, "notes"), {
 			text: text,
-			date: date.toLocaleDateString(),
-		};
-		const newNotes = [...notes, newNote];
-		setNotes(newNotes);
+			createdAt: serverTimestamp(),
+		})
+	};
+	// DELETE NOTE
+	const deleteNote = (id) => {
+		const noteDoc = doc(db, "notes", id);
+		deleteDoc(noteDoc);
 	};
 
-	const deleteNote = (id) => {
-		const newNotes = notes.filter((note) => note.id !== id);
-		setNotes(newNotes);
-	};
-	const editNote = (id) => {
-		const newNotes = notes.filter((note) => note.id !== id);
-		setNotes(newNotes);
-	};
 
 	return (
 		<div className={`${darkMode && 'dark-mode'}`}>
@@ -80,7 +44,7 @@ const App = () => {
 					)}
 					handleAddNote={addNote}
 					handleDeleteNote={deleteNote}
-					handdleEditeNote={editNote}
+					
 				/>
 			</div>
 		</div>
